@@ -1,8 +1,8 @@
 const router = require("express").Router();
-const fs = require("fs");
+const db = require('./helpers');
 
 router.get("/info", (req, res) => {
-  let { persons } = JSON.parse(fs.readFileSync("./db.json"));
+  let { persons } = db.load();
   const len = persons.length;
   const date = new Date().toString();
   res.set("Content-Type", "text/html; charset=utf-8");
