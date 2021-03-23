@@ -30,7 +30,7 @@ router.delete("/persons/:id", (req, res) => {
     const id = Number(req.params.id);
     persons = persons.filter(p => p.id !== id);
     db.save(persons);
-    res.status(204);
+    res.status(204).end();
 });
 
 module.exports = router;
