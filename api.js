@@ -1,36 +1,42 @@
 const router = require("express").Router();
-const db = require('./helpers');
-let { persons } = db.load();
+const Contact = require("./contact");
 
-const genId = () => Math.round(Math.random() * 100_000);
+const isUnique = async (name) => !(await Contact.findOne({ name }));
 
-router.get("/persons", (req, res) => {
-  res.json(persons);
+router.get("/persons", async (req, res) => {
+  const { contacts, error } = await Contact.getAll();
+  if (error) return res.status(500).json({ error });
+  res.json({ persons: contacts });
 });
 
-router.post("/persons", (req, res) => {
-  const { name, number} = req.body;
-  if (!name || !number) return res.status(400).json({error: `${!name ? 'name' : 'number'} is missing`});
-  if (persons.find(p => p.name === name)) return res.status(409).json({error: 'name must be unique'});
-  const id = genId();
-  const newPerson = {name, number, id};
-  persons = [...persons, newPerson];
-  db.save(persons);
-  res.status(201).json(newPerson);
+router.post("/persons", async (req, res) => {
+  const { reqError, contact } = Contact.fromReq(req);
+  if (reqError) return res.status(400).json({ error: reqError });
+  if (!(await isUnique(contact.name)))
+    return res.status(409).json({ error: "name must be unique" });
+  try {
+    await contact.save();
+    res.status(201).json(contact);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-router.get("/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id === id);
+router.get("/persons/:id", async (req, res) => {
+  const id = req.params.id;
+  const person = await Contact.findById(id);
   if (!person) res.status(404).end("404 Not Found");
   res.json(person);
 });
 
-router.delete("/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    persons = persons.filter(p => p.id !== id);
-    db.save(persons);
+router.delete("/persons/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    await Contact.findByIdAndRemove(id);
     res.status(204).end();
+  } catch (error) {
+    res.status(500).json(error);
+  }
 });
 
 module.exports = router;
