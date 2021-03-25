@@ -3,13 +3,13 @@ const Contact = require("./contact");
 
 const isUnique = async (name) => !(await Contact.findOne({ name }));
 
-router.get("/persons", async (req, res) => {
+router.get("/persons", async (req, res, next) => {
   const { contacts, error } = await Contact.getAll();
-  if (error) return res.status(500).json({ error });
+  if (error) return next(error);
   res.json({ persons: contacts });
 });
 
-router.post("/persons", async (req, res) => {
+router.post("/persons", async (req, res, next) => {
   const { reqError, contact } = Contact.fromReq(req);
   if (reqError) return res.status(400).json({ error: reqError });
   if (!(await isUnique(contact.name)))
@@ -18,24 +18,29 @@ router.post("/persons", async (req, res) => {
     await contact.save();
     res.status(201).json(contact);
   } catch {
-    res.status(500).json({ error: "Internal server error" });
+    return next({ error: "Internal server error" });
   }
 });
 
-router.get("/persons/:id", async (req, res) => {
+router.get("/persons/:id", async (req, res, next) => {
   const id = req.params.id;
-  const person = await Contact.findById(id);
+  let person;
+  try {
+    person = await Contact.findById(id);
+  } catch (error) {
+    return next(error);
+  }
   if (!person) res.status(404).end("404 Not Found");
   res.json(person);
 });
 
-router.delete("/persons/:id", async (req, res) => {
+router.delete("/persons/:id", async (req, res, next) => {
   const id = req.params.id;
   try {
     await Contact.findByIdAndRemove(id);
     res.status(204).end();
   } catch (error) {
-    res.status(500).json(error);
+    return next(error);
   }
 });
 
