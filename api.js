@@ -8,10 +8,12 @@ router.get("/persons", async (req, res, next) => {
 });
 
 router.post("/persons", async (req, res, next) => {
+  const { error, existingContact } = await Contact.findExisting(req.body?.name);
+  if (error) return next(error);
+  if (existingContact)
+    return res.status(409).json({ error: "name must be unique" });
   const { reqError, contact } = Contact.fromReq(req);
   if (reqError) return res.status(400).json({ error: reqError });
-  if (!(await isUnique(contact.name)))
-    return res.status(409).json({ error: "name must be unique" });
   try {
     await contact.save();
     res.status(201).json(contact);
@@ -39,7 +41,13 @@ router.put("/persons/:id", async (req, res, next) => {
     try {
       await existingContact.update({ number: req.body?.number });
       await existingContact.save();
-      return res.status(200).json({number: req.body?.number, name: existingContact.name, id: existingContact.id});
+      return res
+        .status(200)
+        .json({
+          number: req.body?.number,
+          name: existingContact.name,
+          id: existingContact.id,
+        });
     } catch (error) {
       next(error);
     }
