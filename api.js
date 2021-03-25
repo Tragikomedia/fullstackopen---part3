@@ -1,8 +1,6 @@
 const router = require("express").Router();
 const Contact = require("./contact");
 
-const isUnique = async (name) => !(await Contact.findOne({ name }));
-
 router.get("/persons", async (req, res, next) => {
   const { contacts, error } = await Contact.getAll();
   if (error) return next(error);
@@ -32,6 +30,20 @@ router.get("/persons/:id", async (req, res, next) => {
   }
   if (!person) res.status(404).end("404 Not Found");
   res.json(person);
+});
+
+router.put("/persons/:id", async (req, res, next) => {
+  const { error, existingContact } = await Contact.findExisting(req.body?.name);
+  if (error) return next(error);
+  if (existingContact) {
+    try {
+      await existingContact.update({ number: req.body?.number });
+      await existingContact.save();
+      return res.status(200).json({number: req.body?.number, name: existingContact.name, id: existingContact.id});
+    } catch (error) {
+      next(error);
+    }
+  }
 });
 
 router.delete("/persons/:id", async (req, res, next) => {

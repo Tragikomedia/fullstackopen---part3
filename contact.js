@@ -25,6 +25,15 @@ contactSchema.statics.fromArgv = function (argv) {
   return { contact: new this({ name, number }) };
 };
 
+contactSchema.statics.findExisting = async function(name) {
+  try {
+    const existingContact = await this.findOne({name});
+    return {existingContact};
+  } catch (error) {
+    return {error};
+  }
+}
+
 contactSchema.statics.fromReq = function (req) {
   const { name, number } = req.body;
   if (!name || !number)
