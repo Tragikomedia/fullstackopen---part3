@@ -1,23 +1,23 @@
-const { model, Schema } = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
+const { model, Schema } = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
 
 const contactSchema = new Schema({
   name: {
     type: String,
     required: true,
     unique: true,
-    minLength: [3, "Name must be at least 3 characters long"],
+    minLength: [3, 'Name must be at least 3 characters long'],
   },
   number: {
     type: String,
     required: true,
-    match: /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{2,6}$/,
+    match: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{2,6}$/,
   },
 });
 
 contactSchema.plugin(uniqueValidator);
 
-contactSchema.set("toJSON", {
+contactSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
@@ -27,7 +27,7 @@ contactSchema.set("toJSON", {
 
 contactSchema.statics.fromArgv = function (argv) {
   const [name, number] = argv.slice(3, 5);
-  if (!name || !number) return { err: "You must provide both name and number" };
+  if (!name || !number) return { err: 'You must provide both name and number' };
   return { contact: new this({ name, number }) };
 };
 
@@ -45,8 +45,8 @@ contactSchema.statics.fromReq = function (req) {
   if (!name || !number)
     return {
       reqError: {
-        name: "ReqError",
-        message: "You must provide both name and number",
+        name: 'ReqError',
+        message: 'You must provide both name and number',
       },
     };
   return { contact: new this({ name, number }) };
@@ -61,4 +61,4 @@ contactSchema.statics.getAll = async function () {
   }
 };
 
-module.exports = model("Contact", contactSchema);
+module.exports = model('Contact', contactSchema);

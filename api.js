@@ -1,13 +1,13 @@
-const router = require("express").Router();
-const Contact = require("./contact");
+const router = require('express').Router();
+const Contact = require('./contact');
 
-router.get("/", async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   const { contacts, error } = await Contact.getAll();
   if (error) return next(error);
   res.json({ persons: contacts });
 });
 
-router.post("/", async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
     const { reqError, contact } = Contact.fromReq(req);
     if (reqError) return next(reqError);
@@ -18,7 +18,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
   const id = req.params.id;
   let person;
   try {
@@ -26,11 +26,11 @@ router.get("/:id", async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
-  if (!person) res.status(404).end("404 Not Found");
+  if (!person) res.status(404).end('404 Not Found');
   res.json(person);
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   const { number } = req.body;
   try {
     const updatedContact = await Contact.findByIdAndUpdate(
@@ -45,7 +45,7 @@ router.put("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   const id = req.params.id;
   try {
     await Contact.findByIdAndRemove(id);
