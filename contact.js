@@ -1,15 +1,21 @@
 const { model, Schema } = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 
 const contactSchema = new Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
+    minLength: [3, "Name must be at least 3 characters long"],
   },
   number: {
-    type: Number,
+    type: String,
     required: true,
+    match: /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{2,6}$/,
   },
 });
+
+contactSchema.plugin(uniqueValidator);
 
 contactSchema.set("toJSON", {
   transform: (document, returnedObject) => {
@@ -25,19 +31,24 @@ contactSchema.statics.fromArgv = function (argv) {
   return { contact: new this({ name, number }) };
 };
 
-contactSchema.statics.findExisting = async function(name) {
+contactSchema.statics.findExisting = async function (name) {
   try {
-    const existingContact = await this.findOne({name});
-    return {existingContact};
+    const existingContact = await this.findOne({ name });
+    return { existingContact };
   } catch (error) {
-    return {error};
+    return { error };
   }
-}
+};
 
 contactSchema.statics.fromReq = function (req) {
   const { name, number } = req.body;
   if (!name || !number)
-    return { reqError: "You must provide both name and number" };
+    return {
+      reqError: {
+        name: "ReqError",
+        message: "You must provide both name and number",
+      },
+    };
   return { contact: new this({ name, number }) };
 };
 

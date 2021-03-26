@@ -17,7 +17,7 @@ app.use(
 );
 
 app.use("/", require("./info"));
-app.use("/api", require("./api"));
+app.use("/api/persons", require("./api"));
 
 app.use(unknownPath);
 app.use(errorHandler);
